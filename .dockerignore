@@ -1,0 +1,69 @@
+# Root level .dockerignore for multi-service builds
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+**/.env
+**/.env.local
+
+# Dependencies
+node_modules/
+**/node_modules/
+.venv/
+**/.venv/
+venv/
+**/venv/
+
+# Build Output
+.next/
+**/out/
+**/build/
+**/dist/
+backend/output/
+backend/test_output/
+
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Documentation
+docs/
+**/*.md
+!README.md
+
+# IDE
+.vscode/
+.idea/
+**/.vscode/
+**/.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+**/logs/
+
+# OS Files
+.DS_Store
+**/.DS_Store
+Thumbs.db
+
+# Sample Data (usually not needed in production)
+sample_data/
+
+# Testing
+**/tests/
+**/*test*.py
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx

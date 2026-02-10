@@ -1,0 +1,25 @@
+{
+  "test_date": "2025-12-04 10:46:31",
+  "task": "Task #8 - Chunk-Based Pipeline Integration",
+  "success": true,
+  "metrics": {
+    "total_steps": 6,
+    "rejected_steps": 1,
+    "average_confidence": 0.3430069283435741,
+    "high_confidence_steps": 0,
+    "transcript_word_count": 516,
+    "transcript_sentence_count": 63,
+    "total_sources": 29,
+    "knowledge_sources_fetched": 0,
+    "knowledge_sources_cited": 0,
+    "knowledge_usage_rate": 0.0,
+    "token_usage": {
+      "input_tokens": 7098,
+      "output_tokens": 1361,
+      "total_tokens": 8459
+    },
+    "processing_time_seconds": 29.47813892364502,
+    "estimated_cost": 0.0019
+  },
+  "processing_time": 31.07467007637024
+}

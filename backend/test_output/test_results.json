@@ -1,0 +1,64 @@
+{
+  "test_date": "2025-11-25 16:26:50",
+  "task": "Task #5 - Simplified Prompt Testing",
+  "results": [
+    {
+      "success": true,
+      "transcript_name": "sample_meeting",
+      "metrics": {
+        "total_steps": 5,
+        "rejected_steps": 1,
+        "average_confidence": 0.2446309557851146,
+        "high_confidence_steps": 0,
+        "transcript_word_count": 516,
+        "transcript_sentence_count": 63,
+        "total_sources": 14,
+        "knowledge_sources_fetched": 0,
+        "knowledge_sources_cited": 0,
+        "knowledge_usage_rate": 0.0,
+        "token_usage": {
+          "input_tokens": 1461,
+          "output_tokens": 508,
+          "total_tokens": 1969
+        },
+        "processing_time_seconds": 11.524963140487671,
+        "estimated_cost": 0.0005
+      },
+      "processing_time": 14.211408853530884
+    },
+    {
+      "success": true,
+      "transcript_name": "short_test",
+      "metrics": {
+        "total_steps": 3,
+        "rejected_steps": 0,
+        "average_confidence": 0.2321890318051177,
+        "high_confidence_steps": 0,
+        "transcript_word_count": 94,
+        "transcript_sentence_count": 11,
+        "total_sources": 6,
+        "knowledge_sources_fetched": 0,
+        "knowledge_sources_cited": 0,
+        "knowledge_usage_rate": 0.0,
+        "token_usage": {
+          "input_tokens": 876,
+          "output_tokens": 284,
+          "total_tokens": 1160
+        },
+        "processing_time_seconds": 6.906763792037964,
+        "estimated_cost": 0.0003
+      },
+      "processing_time": 6.957715034484863
+    }
+  ],
+  "analysis": {
+    "overall_success": true,
+    "avg_confidence": 0.23840999379511615,
+    "acceptance_rate": 88.88888888888889,
+    "avg_token_usage": 1564.5,
+    "avg_processing_time": 10.584561944007874,
+    "high_confidence_rate": 0.0,
+    "total_steps": 8,
+    "total_rejected": 1
+  }
+}

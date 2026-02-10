@@ -1,0 +1,54 @@
+# Multi-stage Dockerfile for ScriptToDoc Backend
+
+# Stage 1: Build stage
+FROM python:3.11-slim as builder
+
+WORKDIR /app
+
+# Install system dependencies (including git for requirements.txt)
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    curl \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+# Remove the editable install line that references the git repo (not needed for Docker)
+RUN sed -i '/^-e git+https/d' requirements.txt
+RUN pip install --no-cache-dir --user -r requirements.txt
+
+# Download NLTK data
+RUN python -c "import nltk; nltk.download('punkt', download_dir='/usr/local/share/nltk_data')"
+
+# Stage 2: Runtime stage
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Copy Python dependencies from builder
+COPY --from=builder /root/.local /root/.local
+COPY --from=builder /usr/local/share/nltk_data /usr/local/share/nltk_data
+
+# Make sure scripts in .local are usable
+ENV PATH=/root/.local/bin:$PATH
+ENV NLTK_DATA=/usr/local/share/nltk_data
+
+# Copy application code
+COPY script_to_doc ./script_to_doc
+COPY api ./api
+COPY workers ./workers
+
+# Create output directory
+RUN mkdir -p /app/output
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Default command (API server)
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+

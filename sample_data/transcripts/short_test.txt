@@ -1,0 +1,14 @@
+First, open your web browser and navigate to the Azure portal at portal.azure.com.
+
+Next, sign in with your organizational credentials. If you have multi-factor authentication enabled, complete that step.
+
+Once logged in, click on "Create a resource" in the left sidebar.
+
+Search for "Virtual Machine" in the marketplace search box.
+
+Select the Virtual Machine option from the results and click "Create".
+
+Fill in the required fields: name, region, and size. Choose an appropriate VM size based on your workload.
+
+Finally, click "Review + Create" and then "Create" to provision the virtual machine.
+

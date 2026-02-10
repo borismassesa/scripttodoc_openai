@@ -1,0 +1,52 @@
+[00:00:05] Speaker 1: Good morning everyone. Um, so today we're going to walk through, you know, how to set up a new Azure resource group and deploy a web application.
+
+[00:00:23] Speaker 2: Great! Let's get started.
+
+[00:00:28] Speaker 1: Okay, so first thing, uh, you need to open the Azure portal. Navigate to portal.azure.com and sign in with your credentials.
+
+[00:00:42] Speaker 1: Once you're logged in, like, you'll see the dashboard. On the left side, there's a menu. Click on "Resource groups".
+
+[00:01:05] Speaker 2: Right, and if you don't see it, you can search for it in the top search bar, right?
+
+[00:01:10] Speaker 1: Exactly! Yeah, so once you're in Resource groups, um, click the "Create" button at the top. It's like a blue button.
+
+[00:01:25] Speaker 1: You'll need to fill in some details. First, select your subscription from the dropdown. Then, you know, give your resource group a name. I usually use something like "rg-myapp-dev" for development.
+
+[00:01:45] Speaker 1: Next, uh, you need to choose a region. This is where your resources will be physically located. I recommend East US or West Europe depending on where your users are.
+
+[00:02:05] Speaker 2: [inaudible] What about tags?
+
+[00:02:10] Speaker 1: Oh yeah, good question! Tags are optional but, like, really useful for organizing resources. You can add tags like "Environment: Development" or "Project: MyApp". This helps with cost tracking and management.
+
+[00:02:30] Speaker 1: After that, click "Review + Create" at the bottom. Azure will validate your settings. If everything looks good, click "Create".
+
+[00:02:45] Speaker 1: The deployment usually takes, um, just a few seconds. Once it's done, you'll see a notification.
+
+[00:03:00] Speaker 1: Now, let's deploy a web app into this resource group. Go back to the home page and search for "App Service" or "Web App".
+
+[00:03:15] Speaker 1: Click "Create". Select the resource group we just created from the dropdown.
+
+[00:03:25] Speaker 1: Give your web app a name. This will be part of your URL, so choose something unique. Like "myapp-demo-2024".
+
+[00:03:40] Speaker 1: For the runtime stack, you can choose Node.js, Python, .NET, whatever you're using. Let's say we're using Node.js 18.
+
+[00:03:55] Speaker 1: Choose the same region as your resource group. This is important for, you know, reducing latency.
+
+[00:04:10] Speaker 1: For the pricing tier, if this is just for testing, you can use the Free tier. But for production, you'll want at least B1 Basic.
+
+[00:04:25] Speaker 1: Click "Review + Create" again, then "Create". This deployment takes a bit longer, maybe 2-3 minutes.
+
+[00:04:40] Speaker 2: And then we can deploy our code, right?
+
+[00:04:45] Speaker 1: Exactly! Once the app service is created, you can deploy your code using GitHub Actions, Azure DevOps, or even just FTP. But that's, um, a topic for another session.
+
+[00:05:00] Speaker 1: The main thing is you now have a resource group and a web app ready to go. You can access it at the URL shown in the overview page.
+
+[00:05:15] Speaker 2: Perfect! That was really helpful.
+
+[00:05:20] Speaker 1: No problem! So, to recap: Create resource group, create web app, deploy code. Pretty straightforward once you've done it a few times.
+
+[00:05:35] Speaker 2: Thanks! I'll try this out this afternoon.
+
+[00:05:40] Speaker 1: Sounds good! Let me know if you run into any issues.
+

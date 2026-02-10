@@ -1,0 +1,138 @@
+name: Deploy Backend to Azure Container Apps
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - 'deployment/backend-*.bicep'
+      - '.github/workflows/backend-deploy.yml'
+  workflow_dispatch:
+
+env:
+  AZURE_RESOURCE_GROUP: rg-scripttodoc-prod
+  CONTAINER_REGISTRY: crscripttodocprod
+  APP_NAME: scripttodoc
+  ENVIRONMENT: prod
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+    - name: Get ACR credentials
+      id: acr
+      run: |
+        ACR_USERNAME=$(az acr credential show -n ${{ env.CONTAINER_REGISTRY }} --query username -o tsv)
+        ACR_PASSWORD=$(az acr credential show -n ${{ env.CONTAINER_REGISTRY }} --query passwords[0].value -o tsv)
+        echo "::add-mask::$ACR_PASSWORD"
+        echo "username=$ACR_USERNAME" >> $GITHUB_OUTPUT
+        echo "password=$ACR_PASSWORD" >> $GITHUB_OUTPUT
+
+    - name: Login to ACR
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.CONTAINER_REGISTRY }}.azurecr.io
+        username: ${{ steps.acr.outputs.username }}
+        password: ${{ steps.acr.outputs.password }}
+
+    - name: Build and push API image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        file: ./backend/Dockerfile
+        push: true
+        tags: |
+          ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ env.APP_NAME }}-api:latest
+          ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ env.APP_NAME }}-api:${{ github.sha }}
+
+    - name: Build and push Worker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        file: ./backend/Dockerfile.worker
+        push: true
+        tags: |
+          ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ env.APP_NAME }}-worker:latest
+          ${{ env.CONTAINER_REGISTRY }}.azurecr.io/${{ env.APP_NAME }}-worker:${{ github.sha }}
+
+    - name: Deploy API Container App
+      run: |
+        az deployment group create \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --template-file deployment/backend-api.bicep \
+          --parameters \
+            environment=${{ env.ENVIRONMENT }} \
+            appName=${{ env.APP_NAME }} \
+            containerRegistryName=${{ env.CONTAINER_REGISTRY }} \
+            containerAppsEnvironmentId=$(az containerapp env list -g ${{ env.AZURE_RESOURCE_GROUP }} --query "[0].id" -o tsv) \
+            keyVaultName=$(az keyvault list -g ${{ env.AZURE_RESOURCE_GROUP }} --query "[0].name" -o tsv) \
+            imageTag=latest
+
+    - name: Deploy Worker Container App
+      run: |
+        az deployment group create \
+          --resource-group ${{ env.AZURE_RESOURCE_GROUP }} \
+          --template-file deployment/backend-worker.bicep \
+          --parameters \
+            environment=${{ env.ENVIRONMENT }} \
+            appName=${{ env.APP_NAME }} \
+            containerRegistryName=${{ env.CONTAINER_REGISTRY }} \
+            containerAppsEnvironmentId=$(az containerapp env list -g ${{ env.AZURE_RESOURCE_GROUP }} --query "[0].id" -o tsv) \
+            keyVaultName=$(az keyvault list -g ${{ env.AZURE_RESOURCE_GROUP }} --query "[0].name" -o tsv) \
+            serviceBusNamespaceName=$(az servicebus namespace list -g ${{ env.AZURE_RESOURCE_GROUP }} --query "[0].name" -o tsv) \
+            imageTag=latest
+
+    - name: Get API URL
+      id: api-url
+      run: |
+        API_URL=$(az containerapp show -n ca-${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}-api -g ${{ env.AZURE_RESOURCE_GROUP }} --query "properties.configuration.ingress.fqdn" -o tsv)
+        echo "url=https://$API_URL" >> $GITHUB_OUTPUT
+        echo "API URL: https://$API_URL"
+
+    - name: Configure RBAC for Managed Identities
+      run: |
+        # Get principal IDs
+        API_PRINCIPAL_ID=$(az containerapp show -n ca-${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}-api -g ${{ env.AZURE_RESOURCE_GROUP }} --query "identity.principalId" -o tsv)
+        WORKER_PRINCIPAL_ID=$(az containerapp show -n ca-${{ env.APP_NAME }}-${{ env.ENVIRONMENT }}-worker -g ${{ env.AZURE_RESOURCE_GROUP }} --query "identity.principalId" -o tsv)
+
+        # Get resource IDs
+        KV_ID=$(az keyvault list -g ${{ env.AZURE_RESOURCE_GROUP }} --query "[0].id" -o tsv)
+        STORAGE_ID=$(az storage account list -g ${{ env.AZURE_RESOURCE_GROUP }} --query "[0].id" -o tsv)
+        COSMOS_ID=$(az cosmosdb list -g ${{ env.AZURE_RESOURCE_GROUP }} --query "[0].id" -o tsv)
+        SB_ID=$(az servicebus namespace list -g ${{ env.AZURE_RESOURCE_GROUP }} --query "[0].id" -o tsv)
+        ACR_ID=$(az acr list -g ${{ env.AZURE_RESOURCE_GROUP }} --query "[0].id" -o tsv)
+
+        # Assign Key Vault Secrets User to both API and Worker
+        az role assignment create --assignee $API_PRINCIPAL_ID --role "Key Vault Secrets User" --scope $KV_ID
+        az role assignment create --assignee $WORKER_PRINCIPAL_ID --role "Key Vault Secrets User" --scope $KV_ID
+
+        # Assign Storage Blob Data Contributor to both
+        az role assignment create --assignee $API_PRINCIPAL_ID --role "Storage Blob Data Contributor" --scope $STORAGE_ID
+        az role assignment create --assignee $WORKER_PRINCIPAL_ID --role "Storage Blob Data Contributor" --scope $STORAGE_ID
+
+        # Assign Cosmos DB Data Contributor to both
+        az role assignment create --assignee $API_PRINCIPAL_ID --role "Cosmos DB Built-in Data Contributor" --scope $COSMOS_ID
+        az role assignment create --assignee $WORKER_PRINCIPAL_ID --role "Cosmos DB Built-in Data Contributor" --scope $COSMOS_ID
+
+        # Assign Service Bus Data Owner to Worker
+        az role assignment create --assignee $WORKER_PRINCIPAL_ID --role "Azure Service Bus Data Owner" --scope $SB_ID
+
+        # Assign ACR Pull to both
+        az role assignment create --assignee $API_PRINCIPAL_ID --role "AcrPull" --scope $ACR_ID
+        az role assignment create --assignee $WORKER_PRINCIPAL_ID --role "AcrPull" --scope $ACR_ID
+
+    - name: Summary
+      run: |
+        echo "✅ Backend deployment complete!"
+        echo "API URL: ${{ steps.api-url.outputs.url }}"
+        echo "Next: Update frontend NEXT_PUBLIC_API_URL with this URL"
