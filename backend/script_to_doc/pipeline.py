@@ -464,14 +464,8 @@ class ScriptToDocPipeline:
                     'total_tokens': total_tokens
                 }
 
-            # Aggregate token usage
-            token_usage = {
-                'input_tokens': total_input_tokens,
-                'output_tokens': total_output_tokens,
-                'total_tokens': total_tokens
-            }
-
-            logger.info(f"Generated {len(steps)} steps using chunk-based approach, {total_tokens} total tokens")
+            # token_usage is already set by either parallel or sequential path above
+            logger.info(f"Generated {len(steps)} steps using chunk-based approach, {token_usage.get('total_tokens', 0)} total tokens")
 
             # Validate that at least one step was generated
             if len(steps) == 0:
