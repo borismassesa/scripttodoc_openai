@@ -34,6 +34,11 @@ export default function ProgressTracker({ jobId, onComplete }: ProgressTrackerPr
   const [showTimeline, setShowTimeline] = useState(true); // Timeline expanded by default to show progress
   const isMountedRef = useRef(true);
   const startTimeRef = useRef<Date>(new Date()); // Use component mount time
+  const onCompleteRef = useRef<ProgressTrackerProps['onComplete']>(onComplete);
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
@@ -76,7 +81,7 @@ export default function ProgressTracker({ jobId, onComplete }: ProgressTrackerPr
           clearInterval(interval);
           clearInterval(timeInterval);
           if (!isMountedRef.current) return;
-          if (onComplete) onComplete(status);
+          if (onCompleteRef.current) onCompleteRef.current(status);
 
           try {
             const download = await getDocumentDownload(jobId);
@@ -117,7 +122,7 @@ export default function ProgressTracker({ jobId, onComplete }: ProgressTrackerPr
       clearInterval(interval);
       clearInterval(timeInterval);
     };
-  }, [jobId, onComplete]);
+  }, [jobId]);
 
   // Debug: Track when current_step changes in the rendered component
   useEffect(() => {
