@@ -376,11 +376,26 @@ class ScriptToDocPipeline:
                     f"(avg {sum(len(c.split()) for c in chunks) / len(chunks) if chunks else 0:.1f} words/segment)"
                 )
 
+                # Enforce min_steps constraint
+                if len(chunks) < self.config.min_steps:
+                    logger.warning(
+                        f"Topic segmentation produced {len(chunks)} segments, "
+                        f"which is below minimum of {self.config.min_steps}. "
+                        f"Falling back to legacy chunking to meet minimum step requirement."
+                    )
+                    # Fall back to legacy chunking to ensure min_steps is met
+                    chunks = self.transcript_chunker.chunk_smart(
+                        transcript=cleaned_text,
+                        target_chunks=target_steps,
+                        prefer_paragraphs=True
+                    )
+                    logger.info(f"Legacy chunking created {len(chunks)} chunks to meet minimum requirement")
+
                 # ✅ NOW set total_steps - we know the actual count after segmentation
                 self._update_progress(
                     progress_callback, 0.42, "determine_steps",
                     total_steps=len(chunks),
-                    stage_detail=f"Determined {len(chunks)} optimal steps based on topic boundaries"
+                    stage_detail=f"Determined {len(chunks)} steps based on topic boundaries"
                 )
             else:
                 # Legacy: Use arbitrary chunking
