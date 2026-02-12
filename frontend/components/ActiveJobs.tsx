@@ -185,11 +185,11 @@ export default function ActiveJobs({ refreshTrigger, onJobComplete, onNavigateTo
   useEffect(() => {
     console.log('[ActiveJobs] Component mounted/updated', { refreshTrigger });
     isMountedRef.current = true;
-    
+
     // Initial fetch with loading state
     console.log('[ActiveJobs] Starting initial fetch');
     fetchActiveJobs(true);
-    
+
     // ⭐ FIXED: Poll every 5 seconds (increased from 2s to avoid canceling requests too quickly)
     // Only start new request if previous one completed or was canceled
     const interval = setInterval(() => {
@@ -228,7 +228,8 @@ export default function ActiveJobs({ refreshTrigger, onJobComplete, onNavigateTo
         }
       }
     };
-  }, [refreshTrigger, fetchActiveJobs]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [refreshTrigger]);
 
   // Detect when the uploaded job appears in the list
   useEffect(() => {
